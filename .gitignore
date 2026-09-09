@@ -265,6 +265,7 @@ doc/
 
 # Deployment artifacts
 dist
+/artifacts/
 *.exe
 *.dll
 
