@@ -253,17 +253,11 @@ namespace Emby.Naming.Video
             // Optimistic expressions are guesses, so they are not consulted here: merging is destructive,
             // a file collapsed into the alternate versions of another one is no longer an episode of its own.
             var episodeResult = _episodePathParser.Parse(path, false, isOptimistic: false, fillExtendedInfo: false);
-            if (!episodeResult.Success)
+            // Multiple distinct episodes can air on the same date. A date is not an episode identity,
+            // and the path parser cannot consult their separate metadata episode numbers.
+            if (!episodeResult.Success || episodeResult.IsByDate)
             {
                 return null;
-            }
-
-            if (episodeResult.IsByDate)
-            {
-                return episodeResult.Year.HasValue && episodeResult.Month.HasValue && episodeResult.Day.HasValue
-                    ? FormattableString.Invariant(
-                        $"D{episodeResult.Year.Value}{episodeResult.Month.Value:D2}{episodeResult.Day.Value:D2}")
-                    : null;
             }
 
             return episodeResult.SeasonNumber.HasValue && episodeResult.EpisodeNumber.HasValue

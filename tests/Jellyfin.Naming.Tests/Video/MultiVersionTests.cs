@@ -1132,6 +1132,46 @@ namespace Jellyfin.Naming.Tests.Video
         }
 
         [Fact]
+        public void TestMultiVersionEpisodeSameDateDistinctTitlesStaySeparate()
+        {
+            var files = new[]
+            {
+                "/tv/Daily Show/Daily Show - 2024-06-12 - First Story.mkv",
+                "/tv/Daily Show/Daily Show - 2024-06-12 - Second Story.mkv",
+                "/tv/Daily Show/Daily Show - 2024-06-12 - Third Story.mkv"
+            };
+
+            var result = _videoListResolver.Resolve(
+                files.Select(i => VideoResolver.Resolve(i, false, _namingOptions)).OfType<VideoFileInfo>().ToList(),
+                collectionType: CollectionType.tvshows).ToList();
+
+            Assert.Equal(files.Length, result.Count);
+            Assert.All(result, r =>
+            {
+                Assert.Single(r.Files);
+                Assert.Empty(r.AlternateVersions);
+            });
+            Assert.Equal(files.Order(), result.Select(r => r.Files[0].Path).Order());
+        }
+
+        [Fact]
+        public void TestMultiVersionEpisodeSameDateResolutionsStaySeparate()
+        {
+            var files = new[]
+            {
+                "/tv/Daily Show/Daily.Show.2024.06.12.1080p.mkv",
+                "/tv/Daily Show/Daily.Show.2024.06.12.720p.mkv"
+            };
+
+            var result = _videoListResolver.Resolve(
+                files.Select(i => VideoResolver.Resolve(i, false, _namingOptions)).OfType<VideoFileInfo>().ToList(),
+                collectionType: CollectionType.tvshows).ToList();
+
+            Assert.Equal(files.Length, result.Count);
+            Assert.All(result, r => Assert.Empty(r.AlternateVersions));
+        }
+
+        [Fact]
         public void TestMultiVersionEpisodeAbsoluteNumberingWithNumberInSeriesTitle()
         {
             // Every one of these parses as episode 2, because the expressions read the "2" of the
